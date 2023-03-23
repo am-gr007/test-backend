@@ -1,14 +1,19 @@
 require("dotenv").config();
 require("express-async-errors");
 const express = require("express");
+const session = require("express-session");
+const passport = require("passport");
 
 const app = express();
+app.use(session({ secret: process.env.SESSION_SECRET }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 //database module
 const connectDatabase = require("./database/connect");
 
 //authentication middleware
-const authenticateUser = require('./middlewares/authentication')
+const { checkAuthenticated } = require("./middlewares/authentication");
 
 // router module
 const userRouter = require("./routes/user");
@@ -28,7 +33,20 @@ app.use(express.json());
 
 // main routes
 app.use("/auth", authRouter);
-app.use("/api/v1", authenticateUser, userRouter);
+app.get("/authenticated", (req, res) => {
+  res.send(`Hello ${req.user.displayName}`);
+});
+app.get("/authentication-failed", (req, res) => {
+  res.send("something went wrong..");
+});
+app.use("/api/v1", checkAuthenticated, userRouter);
+app.get("/logout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) return next(err);
+    req.session.destroy();
+    res.send("Goodbye!");
+  });
+});
 
 // using the error handlers
 app.use(notFoundMiddleware);
