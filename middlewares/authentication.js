@@ -21,4 +21,12 @@ const auth = async (req, res, next) => {
 
 }
 
-module.exports = auth
+
+const checkAuthenticated = async (req, res, next) => {
+    if(!req.isAuthenticated()){
+        throw new UnauthenticatedError('Unauthorised user')
+    }
+    return next()
+}
+
+module.exports = {auth, checkAuthenticated}

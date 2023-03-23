@@ -7,7 +7,7 @@ const getAllUsers = async (req, res) => {
   const users = await User.find({}).sort("createdAt");
   res
     .status(StatusCodes.OK)
-    .json({ query: "success", users: users, count: users.length });
+    .json({user: req.user.displayName, query: "success", users: users, count: users.length });
 };
 
 const getUser = async (req, res) => {
