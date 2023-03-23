@@ -1,5 +1,5 @@
 require("dotenv").config();
-require('express-async-errors');
+require("express-async-errors");
 const express = require("express");
 
 const app = express();
@@ -7,22 +7,28 @@ const app = express();
 //database module
 const connectDatabase = require("./database/connect");
 
+//authentication middleware
+const authenticateUser = require('./middlewares/authentication')
+
 // router module
 const userRouter = require("./routes/user");
+const authRouter = require("./routes/auth");
 
 // error handlers
 const notFoundMiddleware = require("./middlewares/not-found");
-const errorHandlerMiddleware = require('./middlewares/error-handler');
+const errorHandlerMiddleware = require("./middlewares/error-handler");
 
 // test route
-app.get("/", (req, res) => {
-  res.json({ port: process.env.PORT, msg: "Server is working" });
-});
+// app.get("/", (req, res, next) => {
+//   next();
+//   res.json({ port: process.env.PORT, msg: "Server is working" });
+// });
 
 app.use(express.json());
 
 // main routes
-app.use("/api/v1", userRouter);
+app.use("/auth", authRouter);
+app.use("/api/v1", authenticateUser, userRouter);
 
 // using the error handlers
 app.use(notFoundMiddleware);

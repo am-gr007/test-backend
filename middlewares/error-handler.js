@@ -14,16 +14,19 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     customError.statusCode = 400;
   }
 
-// custom cast error
-if (err.name === 'CastError'){
-  const {value: {_id: id}} = err
-  if(id === undefined){
-    customError.message = customError.message = `No user is present with id ${err.value}`
-    customError.statusCode = 404
-  }
-  customError.message = `No user is present with id ${id}`
-  customError.statusCode = 404
-}
+  // // custom cast error
+  // if (err.name === "CastError") {
+  //   const {
+  //     value: { _id: id },
+  //   } = err;
+  //   if (id === undefined) {
+  //     customError.message =
+  //       customError.message = `No user is present with id ${err.value}`;
+  //     customError.statusCode = 404;
+  //   }
+  //   customError.message = `No user is present with id ${id}`;
+  //   customError.statusCode = 404;
+  // }
 
   return res
     .status(customError.statusCode)
