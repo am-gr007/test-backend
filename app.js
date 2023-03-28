@@ -3,9 +3,16 @@ require("express-async-errors");
 const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
+const { logger, errorLogger } = require("./controllers/custom_logger");
 
 const app = express();
-app.use(session({ secret: process.env.SESSION_SECRET }));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -23,15 +30,9 @@ const authRouter = require("./routes/auth");
 const notFoundMiddleware = require("./middlewares/not-found");
 const errorHandlerMiddleware = require("./middlewares/error-handler");
 
-// test route
-// app.get("/", (req, res, next) => {
-//   next();
-//   res.json({ port: process.env.PORT, msg: "Server is working" });
-// });
-
 app.use(express.json());
 
-// main routes
+// authentication routes
 app.use("/auth", authRouter);
 app.get("/authenticated", (req, res) => {
   res.send(`Hello ${req.user.displayName}`);
@@ -39,6 +40,8 @@ app.get("/authenticated", (req, res) => {
 app.get("/authentication-failed", (req, res) => {
   res.send("something went wrong..");
 });
+
+// user routes
 app.use("/api/v1", checkAuthenticated, userRouter);
 app.get("/logout", (req, res, next) => {
   req.logout((err) => {
@@ -60,9 +63,10 @@ const start = async () => {
     await connectDatabase(connectionString);
     app.listen(port, () => {
       console.log(`Server is listening on port ${port}...`);
+      logger.info(`Server started running on port ${port}`);
     });
   } catch (error) {
-    console.log(error);
+    errorLogger.error(`${error.name} - ${error.message}`);
   }
 };
 

@@ -2,20 +2,33 @@ const User = require("../models/User");
 const { StatusCodes } = require("http-status-codes");
 const { BadRequestError } = require("../errors/bad-request");
 const { NotFoundError } = require("../errors/not-found");
+const { logger, errorLogger } = require("./custom_logger");
 
 const getAllUsers = async (req, res) => {
   const users = await User.find({}).sort("createdAt");
-  res
-    .status(StatusCodes.OK)
-    .json({user: req.user.displayName, query: "success", users: users, count: users.length });
+  logger.info("All users from database fetched");
+  res.status(StatusCodes.OK).json({
+    user: req.user.displayName,
+    query: "success",
+    users: users,
+    count: users.length,
+  });
 };
 
 const getUser = async (req, res) => {
   try {
     const { id: userId } = req.params;
     const user = await User.findOne({ _id: userId });
+    if (user === null) {
+      throw new NotFoundError(`No user exists with id: ${userId}`);
+    }
+
+    if (!user) {
+      throw new NotFoundError(`The ${userId} is incorrect`);
+    }
     res.status(StatusCodes.OK).json({ user: user });
   } catch (error) {
+    errorLogger.error(`${error.name} - ${error.message}`);
     return res.status(500).json({ error });
   }
 };
